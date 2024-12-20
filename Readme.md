@@ -1,0 +1,3 @@
+为防止网站被ddos，提交代码中不包含可爬取开奖结果的网站，使用前需要修改BallsScrapy.py中scrapy_url的值，scrapy_url中保留一个可替换开奖期数的占位符  
+针对填写对应的网站来修改中奖区域的xpath  
+或者可以自己重写返回结果为get_lottery_balls中balls变量的格式方法, 返回结果为get_lottery_balls中balls变量的格式
