@@ -110,8 +110,8 @@ def add_paid_balls():
             addedBalls.append({
                 "序号": f"第{len(addedBalls)+1}组",
                 "期号": lotteryNo,
-                "蓝球": blueBall,
-                "红球": redBalls
+                "蓝球": f"{blueBall:02d}",
+                "红球": " ".join(f"{ball:02d}" for ball in redBalls)
             })
         except:
             #traceback.print_exc()
@@ -167,7 +167,7 @@ def random_balls_with_monte_carlo(balls):
         redBalls = random.choices(list(balls["red"].keys()), weights=list(balls["red"].values()), k=6)
         redBalls = list(set(redBalls))
         while len(redBalls) < 6:
-            redBalls.append(random.choice(balls["red"]))
+            redBalls.append(random.choice(list(balls["red"].keys())))
         yield {"blue": blueBall, "red": sorted(redBalls)}
 
 def print_picked_balls(balls):
