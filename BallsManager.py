@@ -20,12 +20,16 @@ def wraps_KeyBoardInterrupt(func):
 @wraps_KeyBoardInterrupt
 def scrape_balls():
     scrape_range = [None, None]
+    newestLotteryNo = LotteryBalls.get_newest_lotteryno()
     while 1:
         if scrape_range[0] == None:
-            startLotteryNo = input("请输入开始期号(ctrl+c退出):")
-            try:
+            extraMsg = f"(留空则从最新一期{int(newestLotteryNo)+1}开始)" if newestLotteryNo else ""
+            startLotteryNo = input(f"请输入开始期号{extraMsg}(ctrl+c退出):")
+            if startLotteryNo.isdigit():
                 startLotteryNo = int(startLotteryNo)
-            except:
+            elif not startLotteryNo:
+                startLotteryNo = int(newestLotteryNo) + 1
+            else:
                 print("输入的期号格式不正确")
                 continue
             scrape_range[0] = startLotteryNo
@@ -110,11 +114,11 @@ def add_paid_balls():
             addedBalls.append({
                 "序号": f"第{len(addedBalls)+1}组",
                 "期号": lotteryNo,
-                "蓝球": f"{blueBall:02d}",
-                "红球": " ".join(f"{ball:02d}" for ball in redBalls)
+                "蓝球": f"{int(blueBall):02d}",
+                "红球": " ".join(f"{int(ball):02d}" for ball in redBalls)
             })
         except:
-            #traceback.print_exc()
+            traceback.print_exc()
             print("输入的号码格式不正确")
             continue
 
