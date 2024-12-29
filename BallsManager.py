@@ -24,7 +24,7 @@ def scrape_balls():
     while 1:
         if scrape_range[0] == None:
             extraMsg = f"(留空则从最新一期{int(newestLotteryNo)+1}开始)" if newestLotteryNo else ""
-            startLotteryNo = input(f"请输入开始期号{extraMsg}(ctrl+c退出):")
+            startLotteryNo = input(f"请输入开始期号{extraMsg}(ctrl+c返回菜单):")
             if startLotteryNo.isdigit():
                 startLotteryNo = int(startLotteryNo)
             elif not startLotteryNo:
@@ -34,7 +34,7 @@ def scrape_balls():
                 continue
             scrape_range[0] = startLotteryNo
         if scrape_range[1] == None:
-            endLotteryNo = input("请输入结束期号(输入0表示爬取到最新一期, ctrl+c退出):")
+            endLotteryNo = input("请输入结束期号(输入0表示爬取到最新一期, ctrl+c返回菜单):")
             try:
                 endLotteryNo = int(endLotteryNo)
                 if endLotteryNo and endLotteryNo < startLotteryNo:
@@ -84,7 +84,7 @@ def add_paid_balls():
         if not lotteryNo:
             newestLotteryNo = LotteryBalls.get_newest_lotteryno()
             newestLotteryMessage = f"直接回车代表购买最新一期:{int(newestLotteryNo)+1}, " if newestLotteryNo else "" 
-            lotteryNo = input(f"请输入购买期号({newestLotteryMessage}ctrl+c退出)")
+            lotteryNo = input(f"请输入购买期号({newestLotteryMessage}ctrl+c返回菜单)")
             try:
                 if lotteryNo.isdigit():
                     lotteryNo = int(lotteryNo)
@@ -96,7 +96,7 @@ def add_paid_balls():
                 print("期号格式不正确")
                 continue
         try:
-            _balls = input(f"请{goOn}输入购买的号码(第1个为红球, 最后1个为蓝球, 以空格隔开, ctrl+c退出)")
+            _balls = input(f"请{goOn}输入购买的号码(第1个为红球, 最后1个为蓝球, 以空格隔开, ctrl+c返回菜单)")
         except KeyboardInterrupt:
             if addedBalls:
                 print("\n本次添加以下号码:\n")
@@ -188,12 +188,15 @@ def print_picked_balls(balls):
         } for i, ball in enumerate(balls)])
         print_split_line("")
 
-@wraps_KeyBoardInterrupt
 def pick_balls():
     pickedBalls = []
     while 1:
         print_picked_balls(pickedBalls)
-        anayIndex = input("请选择分析历史球的模式(1: 出现次数 2: 连续出现次数 3:不用分析)(ctrl+c退出)")
+        try:
+            anayIndex = input("请选择分析历史球的模式(1: 出现次数 2: 连续出现次数 3:不用分析)(ctrl+c返回菜单)")
+        except KeyboardInterrupt:
+            promote_save_picked_balls(pickedBalls)
+            break
         anayBalls = {}
         if anayIndex == "1":
             print("所有球出现次数分析中...", end="")
@@ -217,14 +220,43 @@ def pick_balls():
             print(tabulate([["蓝球", f"{balls['blue']:02d}"], ["红球", " ".join(f"{b:02d}" for b in balls["red"])]],
                            tablefmt="simple_grid"))
             try:
-                yes = input("是否保留此组号码(y/保留, n/跳过, c/重新分析继续选球)(ctrl+c退出)")
+                yes = input("是否保留此组号码(y/保留, n/跳过, c/重新分析继续选球)(ctrl+c返回菜单)")
             except KeyboardInterrupt:
                 print_picked_balls(pickedBalls)
-                raise
+                promote_save_picked_balls(pickedBalls)
+                return
             if yes.lower() in ["y", "yes"]:
                 pickedBalls.append(balls)
             elif yes.lower() in ["c", "continue"]:
                 break
+
+def promote_save_picked_balls(pickedBalls):
+    if not pickedBalls:
+        return
+    yes = input("是否将已选号码保存到购买记录(y/保存, n/不保存)(ctrl+c返回菜单)")
+    if yes.lower() in ["y", "yes"]:
+        newestLotteryNo = LotteryBalls.get_newest_lotteryno()
+        lottoryNoMsg = f"(留空则为最新一期:{int(newestLotteryNo)+1})" if newestLotteryNo else ""
+        lottoryNo = ""
+        while not lottoryNo:
+            try:
+                lottoryNo = input(f"请输入期号{lottoryNoMsg}(ctrl+c返回菜单):")
+            except KeyboardInterrupt:
+                print_split_line("")
+                return
+            if lottoryNo and lottoryNo.isdigit():
+                lottoryNo = int(lottoryNo)
+            elif not lottoryNo:
+                lottoryNo = int(newestLotteryNo) + 1
+        today = datetime.today()
+        for balls in pickedBalls:
+            PaidBalls.add_balls({
+                "blue": balls["blue"],
+                "red": balls["red"],
+                "lotteryNo": lottoryNo,
+                "paidDate": today
+            })
+        print_split_line("")
 @wraps_KeyBoardInterrupt
 def main():
     initDB()
