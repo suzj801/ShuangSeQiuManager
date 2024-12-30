@@ -171,7 +171,10 @@ def random_balls_with_monte_carlo(balls):
         redBalls = random.choices(list(balls["red"].keys()), weights=list(balls["red"].values()), k=6)
         redBalls = list(set(redBalls))
         while len(redBalls) < 6:
-            redBalls.append(random.choice(list(balls["red"].keys())))
+            ball = random.choice(list(balls["red"].keys()))
+            if ball in redBalls:
+                continue
+            redBalls.append(ball)
         yield {"blue": blueBall, "red": sorted(redBalls)}
 
 def print_picked_balls(balls):
